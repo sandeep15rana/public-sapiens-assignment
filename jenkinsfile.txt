@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://your-repo-url.git'
+            }
+        }
+        stage('Build Backend') {
+            steps {
+                sh 'cd backend && mvn clean package'
+            }
+        }
+        stage('Build Frontend') {
+            steps {
+                sh 'cd frontend && npm install && npm run build'
+            }
+        }
+        stage('Dockerize') {
+            steps {
+                sh '''
+                docker build -t news-backend ./backend
+                docker build -t news-frontend ./frontend
+                '''
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '''
+                docker run -d -p 8080:8080 news-backend
+                docker run -d -p 80:80 news-frontend
+                '''
+            }
+        }
+    }
+}

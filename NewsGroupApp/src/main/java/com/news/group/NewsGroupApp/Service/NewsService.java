@@ -18,7 +18,6 @@ public class NewsService {
 
     private boolean offlineMode;
 
-    // Injecting RestTemplate for making API calls
     private final RestTemplate restTemplate;
 
     public NewsService(RestTemplate restTemplate) {
@@ -34,10 +33,8 @@ public class NewsService {
             return mockNewsData();
         }
 
-        // Call the actual News API to get real data
         List<Article> articles = fetchArticlesFromApi(keyword);
 
-        // Group articles by the time interval
         List<GroupedData> groupedData = groupArticlesByTimeInterval(articles, interval, unit);
 
         Map<String, Object> results = new HashMap<>();
@@ -47,20 +44,16 @@ public class NewsService {
     }
 
     private List<Article> fetchArticlesFromApi(String keyword) {
-        // Construct API URL
         String url = apiUrl + "?q=" + keyword + "&apiKey=" + apiKey;
 
-        // Send the GET request and get the response
         NewsApiResponse response = restTemplate.getForObject(url, NewsApiResponse.class);
 
-        // Return the list of articles
         return response != null ? response.getArticles() : new ArrayList<>();
     }
 
     private List<GroupedData> groupArticlesByTimeInterval(List<Article> articles, int interval, String unit) {
         Map<String, List<Article>> grouped = new HashMap<>();
         
-        // Logic to group articles by time interval
         for (Article article : articles) {
             LocalDateTime articleTime = article.getPublishedAt();
             String intervalKey = getIntervalKey(articleTime, interval, unit);
@@ -75,7 +68,6 @@ public class NewsService {
     }
 
     private String getIntervalKey(LocalDateTime articleTime, int interval, String unit) {
-        // Simple logic for interval grouping (this can be expanded to better handle different units)
         return interval + " " + unit;  // For example, 12 hours
     }
 

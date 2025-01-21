@@ -19,7 +19,12 @@ public class NewsController {
     public Map<String, Object> getNews(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "12") int interval,
-            @RequestParam(defaultValue = "hours") String unit) {
+            @RequestParam(defaultValue = "hours") String unit) 
+    {
+    	if( keyword == null || keyword.isEmpty())
+    	{
+    		throw new IllegalArgumentException("KEYword cannot be empty!!");
+    	}
         return newsService.getGroupedNews(keyword, interval, unit);
     }
 

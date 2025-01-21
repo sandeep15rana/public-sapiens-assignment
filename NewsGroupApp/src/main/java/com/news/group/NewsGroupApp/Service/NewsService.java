@@ -7,6 +7,9 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import com.news.group.NewsGroupApp.Exception.BusinessLogicException;
+import com.news.group.NewsGroupApp.Exception.ResourceNotFoundException;
+
 @Service
 public class NewsService {
 
@@ -28,7 +31,7 @@ public class NewsService {
         this.offlineMode = mode;
     }
 
-    public Map<String, Object> getGroupedNews(String keyword, int interval, String unit) {
+    public Map<String, Object> getGroupedNews(String keyword, int interval, String unit) throws BusinessLogicException {
         if (offlineMode) {
             return mockNewsData();
         }
@@ -43,15 +46,27 @@ public class NewsService {
         return results;
     }
 
-    private List<Article> fetchArticlesFromApi(String keyword) {
+    private List<Article> fetchArticlesFromApi(String keyword) throws BusinessLogicException {
         String url = apiUrl + "?q=" + keyword + "&apiKey=" + apiKey;
 
-        NewsApiResponse response = restTemplate.getForObject(url, NewsApiResponse.class);
+        try 
+        {
+            NewsApiResponse response = restTemplate.getForObject(url, NewsApiResponse.class);
+            if(response == null || response.getArticles().isEmpty())
+            	throw new BusinessLogicException("No Article Found..");
+        	return response.getArticles();
+        }catch(Exception e)
+        {
+        	throw new BusinessLogicException("Failed to fetch from API" + e.getMessage());
+        }
 
-        return response != null ? response.getArticles() : new ArrayList<>();
     }
 
-    private List<GroupedData> groupArticlesByTimeInterval(List<Article> articles, int interval, String unit) {
+    private List<GroupedData> groupArticlesByTimeInterval(List<Article> articles, int interval, String unit) throws BusinessLogicException {
+    	
+    	if(articles.isEmpty())
+    		throw new BusinessLogicException("Article cannot be null");
+    	
         Map<String, List<Article>> grouped = new HashMap<>();
         
         for (Article article : articles) {
